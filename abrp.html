@@ -1,0 +1,152 @@
+<script type="text/javascript">
+    RED.nodes.registerType('abrpconfig',{
+        category: 'config',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            usertoken: {value:"",required:true},
+            carmodel:{value:"kia:ev9:23:100:awd:gt",required:true},
+            apikey:{value:"02e48d16-dbca-40dd-86d5-9c2fe3bceec2",required:true},
+            apiurl:{value:"https://api.iternio.com/1/",required:true},
+            mininterval:{value:10,required:true,validate:RED.validators.number()},
+        },
+        label: function() {
+            return this.name||this.usertoken||"abrpconfig";
+        },
+        oneditprepare: function(a) {
+            var abrproute = '/_abrp/get_carmodels_list/';
+            var apiurl = $("#node-config-input-apiurl").val();
+            var apikey = $("#node-config-input-apikey").val();
+            var abrpmessageholder = $('#abrpmessageholder');
+            abrpmessageholder.html("Loading Car Models List");
+            console.log(this);
+            $.getJSON(abrproute + 'false/' + apikey + '/' + encodeURIComponent(apiurl),function(carmodelsdata) {
+              $("#node-config-input-carmodel").typedInput({
+                  type:"carmodel",
+                  types: [
+                      {
+                          value: this.carmodel,
+                          options: carmodelsdata
+                      }
+                  ]
+              });
+              abrpmessageholder.html("Loaded " + carmodelsdata.length + " vehicules into the list");
+            });
+            
+
+            $("#node-config-refresh-carmodels").on( "click", { parent: this }, function(event) {
+                console.log(event);
+                var apiurl = $("#node-config-input-apiurl").val();
+                var apikey = $("#node-config-input-apikey").val();
+                $("#node-config-refresh-carmodels-icon").removeClass('fa-rotate').addClass('spinner');
+                $("#node-config-refresh-carmodels").addClass('disabled');
+                abrpmessageholder.html("Refreshing Car Models List");
+                $.getJSON(abrproute + 'true/' + apikey + '/' + encodeURIComponent(apiurl),function(carmodelsdata) {
+                    $("#node-config-refresh-carmodels-icon").addClass('fa-rotate').removeClass('spinner');
+                    $("#node-config-refresh-carmodels").removeClass('disabled');
+                    
+                    // typedInput does not seem to like being reconfigured, a real pain
+                    // no need to unhide it, by default, jQuery does not vopy events
+                    $("#node-config-input-carmodel").clone().insertAfter("#node-config-input-carmodel");
+                    $("#node-config-input-carmodel:first-of-type").remove(); // Takes out the linked div menu too
+                    console.log(event.data.parent);
+                    $("#node-config-input-carmodel").typedInput({
+                        type:"carmodel",
+                        types: [
+                            {
+                                value: event.data.parent.carmodel,
+                                options: carmodelsdata
+                            }
+                        ]
+                    });
+                    abrpmessageholder.html("Refreshed and loaded " + carmodelsdata.length + " vehicules into the list");
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    $("#node-config-refresh-carmodels-icon").addClass('fa-rotate').removeClass('spinner');
+                    $("#node-config-refresh-carmodels").removeClass('disabled');
+                    console.log("Error:", textStatus, errorThrown);
+                    abrpmessageholder.html("<b>ERROR</b> "+jqXHR.responseJSON.error);
+                });
+            });
+        }
+    });
+</script>
+    
+<script type="text/javascript">
+    RED.nodes.registerType('abrpsendtlm',{
+        category: 'ABRP',
+        color: '#a6bbcf',
+        defaults: {
+            name: { value: 'Send Telemetry' },
+            abrpconfig: {value:"ABRP Config", type:"abrpconfig"},
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.svg",
+        label: function() {
+            return this.name||"Send TLM";
+        }
+    });
+</script>
+
+
+<script type="text/html" data-template-name="abrpconfig">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-usertoken"><i class="fa fa-user-secret"></i> UserToken</label>
+        <input type="text" id="node-config-input-usertoken" placeholder="wwww-xxxx-yyyy-zzzz" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-carmodel"><i class="fa fa-car"></i> Car Model</label>
+        <input style="width: 60%; display: inline-flex;" type="text" id="node-config-input-carmodel" placeholder="" />
+        <a id="node-config-refresh-carmodels" class="red-ui-button" style="margin-left: 10px;"><i id="node-config-refresh-carmodels-icon" class="fa fa-refresh"></i></a>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apikey"><i class="fa fa-key"></i> API Key</label>
+        <input type="text" id="node-config-input-apikey" placeholder="wwww-xxxx-yyyy-zzzz" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-apiurl"><i class="fa fa-globe"></i> API Base</label>
+        <input type="text" id="node-config-input-apiurl" placeholder="https://servername/api/url/" />
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-mininterval"><i class="fa fa-clock-o"></i> Minimum Interval (s)</label>
+        <input type="text" id="node-config-input-mininterval" placeholder="10" />
+    </div>
+    <div class="form-row">
+        <span id="abrpmessageholder"></span>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="abrpconfig">
+    <p>Bla bla</p>
+</script>
+
+<!-- ABRP tlm 
+
+curl --location -g --request POST 'https://api.iternio.com/1/tlm/send?api_key=xxxx&token=ABRPusertoken&tlm={%22utc%22%3A1553807658%2C%22soc%22%3A80.4%2C%22soh%22%3A97.7%2C%22speed%22%3A0%2C%22lat%22%3A29.564%2C%22lon%22%3A-95.025%2C%22elevation%22%3A50%2C%22is_charging%22%3A0%2C%22power%22%3A13.2%2C%22ext_temp%22%3A25%2C%22batt_temp%22%3A25%2C%22car_model%22%3A%22chevy%3Abolt%3A17%3A60%3Aother%22%2C%22current%22%3A36.66%2C%22voltage%22%3A360}' \
+--data ''
+
+token
+<ABRP user token>
+
+tlm
+{"utc":1553807658,"soc":80.4,"soh":97.7,"speed":0,"lat":29.564,"lon":-95.025,"elevation":50,"is_charging":0,"power":13.2,"ext_temp":25,"batt_temp":25,"car_model":"chevy:bolt:17:60:other","current":36.66,"voltage":360}
+
+-->
+<script type="text/html" data-template-name="abrpsendtlm">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-abrpconfig"><i class="fa fa-tag"></i> ABRP Config</label>
+        <input type="text" id="node-input-abrpconfig">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="abrpsendtlm">
+    <p>A simple node that converts the message payloads into all lower-case characters</p>
+</script>
