@@ -112,6 +112,7 @@ module.exports = function(RED) {
                 try {
                     https.get(
                         this.abrpconfig.apiurl + 'tlm/send?api_key=' + this.abrpconfig.apikey + '&token=' + this.abrpconfig.usertoken + '&tlm=' + encodeURI(JSON.stringify(tlm.vars)), {
+                            timeout: 3000,
                             method: 'POST'
                         },
                         (getres) => {
