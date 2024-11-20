@@ -72,11 +72,11 @@
 </script>
     
 <script type="text/javascript">
-    RED.nodes.registerType('abrpsendtlm',{
+    RED.nodes.registerType('ABRP Send',{
         category: 'ABRP',
         color: '#a6bbcf',
         defaults: {
-            name: { value: 'Send Telemetry' },
+            name: {value:""},
             abrpconfig: {value:"ABRP Config", type:"abrpconfig"},
         },
         inputs: 1,
@@ -112,7 +112,7 @@
         <input type="text" id="node-config-input-apiurl" placeholder="https://servername/api/url/" />
     </div>
     <div class="form-row">
-        <label for="node-config-input-mininterval"><i class="fa fa-clock-o"></i> Minimum Interval (s)</label>
+        <label for="node-config-input-mininterval"><i class="fa fa-hourglass"></i> Minimum Interval (s)</label>
         <input type="text" id="node-config-input-mininterval" placeholder="10" />
     </div>
     <div class="form-row">
@@ -136,7 +136,7 @@ tlm
 {"utc":1553807658,"soc":80.4,"soh":97.7,"speed":0,"lat":29.564,"lon":-95.025,"elevation":50,"is_charging":0,"power":13.2,"ext_temp":25,"batt_temp":25,"car_model":"chevy:bolt:17:60:other","current":36.66,"voltage":360}
 
 -->
-<script type="text/html" data-template-name="abrpsendtlm">
+<script type="text/html" data-template-name="ABRP Send">
     <div class="form-row">
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name" />

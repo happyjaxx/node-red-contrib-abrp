@@ -77,7 +77,7 @@ module.exports = function(RED) {
                         case 'is_charging': // High Priority
                         case 'is_dcfc': // High Priority
                         case 'is_parked': // High Priority
-                        case 'capacity': // 
+                        case 'capacity': // Low Prio
                         case 'soe':
                         case 'soh':
                         case 'heading':
@@ -91,7 +91,7 @@ module.exports = function(RED) {
                         case 'hvac_power':
                         case 'hvac_setpoint':
                         case 'cabin_temp':
-                        case 'tire_pressure_fl':
+                        case 'tire_pressure_fl': // in kPa
                         case 'tire_pressure_fr':
                         case 'tire_pressure_rl':
                         case 'tire_pressure_rr':
@@ -99,7 +99,7 @@ module.exports = function(RED) {
                             break;
                         default:
                             tlm.discarded[key] = value;
-                            RED.log.warn(`sendtlm input payload contained unknown key '${key}'`);
+                            //RED.log.warn(`sendtlm input payload contained unknown key '${key}'`);
                     }
                 }
                 if (!tlm.vars.hasOwnProperty('utc')) {
@@ -284,5 +284,5 @@ module.exports = function(RED) {
     });
 
     RED.nodes.registerType("abrpconfig", AbrpconfigNode);
-    RED.nodes.registerType("abrpsendtlm", AbrpSendTlm);
+    RED.nodes.registerType("ABRP Send", AbrpSendTlm);
 }
